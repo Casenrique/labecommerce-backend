@@ -75,7 +75,8 @@ export function getAllProducts(): TProduct[] {
 }
 
 export function getProductById(idToSearch: string): TProduct[] | undefined {
- return(products.filter((product) => 
+ return(
+    products.filter((product) => 
     product.id === idToSearch
  ))
 }
