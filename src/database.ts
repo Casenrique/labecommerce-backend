@@ -40,10 +40,16 @@ export const purchases:TPurchase[] = [
         productId: 'p002',
         quantity:  1,
         totalPrice: 10.50
-    }
+    },
+    {
+        userId: 'u002',
+        productId: 'p001',
+        quantity:  20,
+        totalPrice: 10.00
+    },
 ]
 
-export function createUser(id: string, email: string, password: string ): void {
+export function createUser(id: string, email: string, password: string): void {
     const newUser: TUser = {
         id,
         email,
