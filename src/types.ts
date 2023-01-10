@@ -13,7 +13,7 @@ export type TUser = {
 export type TProduct = {
     id: string,
     name: string,
-    price: number,
+    price: number | undefined,
     category: CATEGORIES
 }
 
