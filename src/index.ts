@@ -356,17 +356,28 @@ app.delete('/users/:id', (req: Request, res: Response) => {
 //Delete Product by id
 
 app.delete('/products/:id', (req: Request, res: Response) => {
-    const { id } = req.params
+    try {
+        const { id } = req.params
+    
+        const productIndex = products.findIndex((product) => {
+            return product.id === id
+        })
+    
+        if (productIndex >= 0) {
+            products.splice(productIndex, 1)
+        }
+        res.status(200).send("Produto deletado com sucesso")
+        console.log("Produto deletado com sucesso")
 
-    const productIndex = products.findIndex((product) => {
-        return product.id === id
-    })
+        
+    } catch (error: any) {
+        console.log(error)
 
-    if (productIndex >= 0) {
-        products.splice(productIndex, 1)
+        if(res.statusCode === 200){
+            res.status(500)
+        }
+        res.send(error.message)
     }
-    res.status(200).send("Produto deletado com sucesso")
-    console.log("Produto deletado com sucesso")
 })
 
 // Exercício 3
