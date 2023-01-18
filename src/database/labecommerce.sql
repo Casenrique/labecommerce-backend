@@ -105,3 +105,46 @@ SELECT MIN(price) as minPrice
 FROM products;
 
 
+-- Relações SQL - Exercício 1
+
+CREATE TABLE purchases (
+    id TEXT PRIMARY KEY UNIQUE NOT NULL,
+    total_price REAL NOT NULL,
+    paid INTEGER NOT NULL,
+    delivered_at TEXT,
+    buyer_id TEXT NOT NULL,
+    FOREIGN KEY (buyer_id) REFERENCES users (id)
+);
+
+-- Relações SQL - Exercício 2
+
+INSERT into purchases (id, total_price, paid, delivered_at, buyer_id)
+VALUES
+    ("pu001", 12.90, 0, NULL, "u001"),
+    ("pu002", 55.90, 0, NULL, "u001"),
+    ("pu003", 39.90, 0, NULL, "u002"),
+    ("pu004", 99.90, 0, NULL, "u002"),
+    ("pu005", 31.90, 0, NULL, "u003"),
+    ("pu006", 76.90, 0, NULL, "u003"),
+    ("pu007", 44.90, 0, NULL, "u004"),
+    ("pu008", 62.90, 0, NULL, "u004");
+
+    SELECT * FROM purchases;
+
+    UPDATE purchases
+    SET 
+        paid = 1,
+        delivered_at = DATETIME('now')
+    WHERE id = "pu001";
+
+    -- Relações SQL - Exercício 3
+
+    SELECT * FROM purchases
+    INNER JOIN users
+    ON purchases.buyer_id = users.id
+    where users.id = "u001";
+    -- GROUP BY buyer_id;
+
+
+
+    
