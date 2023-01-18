@@ -286,7 +286,7 @@ app.get('/products/:id', (req: Request, res: Response) => {
         }
         res.status(200).send(result)
         console.log("Produto encontrado")
-
+        
     } catch (error: any) {
         console.log(error)
 
