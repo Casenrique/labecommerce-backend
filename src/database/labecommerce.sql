@@ -63,6 +63,7 @@ WHERE price >= 5 And price <= 35
 ORDER BY price ASC;
 
 PRAGMA table_info("users");
+
 PRAGMA table_info("products");
 
 -- Exercício 2 - Aprofundamento SQL - Delete User by id
@@ -104,7 +105,6 @@ WHERE id = "p004";
 SELECT MIN(price) as minPrice
 FROM products;
 
-
 -- Relações SQL - Exercício 1
 
 CREATE TABLE purchases (
@@ -145,6 +145,36 @@ VALUES
     where users.id = "u001";
     -- GROUP BY buyer_id;
 
+-- Relações SQL II - Exercício 1
+    
+CREATE TABLE purchases_products (
+    purchase_id TEXT NOT NULL,
+    product_id TEXT NOT NULL,
+    quantity INTEGER NOT NULL,
+    FOREIGN KEY (purchase_id) REFERENCES purchases (id),
+    FOREIGN KEY (product_id) REFERENCES products (id)
+);
+
+-- Relações SQL II - Exercício 2
+
+INSERT INTO purchases_products -- This is the cart
+VALUES
+    ("pu001", "p006", 1),
+    ("pu001", "p001", 6),   
+    ("pu002", "p006", 1),
+    ("pu002", "p001", 1),
+    ("pu002", "p005", 1),
+    ("pu003", "p006", 1),
+    ("pu003", "p003", 1),
+    ("pu003", "p001", 18);
+
+SELECT * FROM purchases_products;
+
+SELECT * FROM purchases_products
+INNER JOIN purchases
+ON purchases_products.purchase_id = purchases.id
+INNER JOIN products
+ON purchases_products.product_id = products.id;
 
 
     
