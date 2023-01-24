@@ -1,20 +1,22 @@
 -- Active: 1673887120007@@127.0.0.1@3306
 CREATE TABLE users (
     id TEXT PRIMARY KEY UNIQUE NOT NULL,
+    name TEXT NOT NULL,
     email TEXT UNIQUE NOT NULL,
-    password TEXT NOT NULL
+    password TEXT NOT NULL,
+    created_at DEFAULT (DATETIME('now','localtime')) NOT NULL
 );
 
 -- Exercício 1 - Aprofundamento SQL - Create User
 
-INSERT INTO users (id, email, password)
+INSERT INTO users (id, name, email, password)
 VALUES 
-    ("u001", "professorx@marvel.com", "Produto$m4nual"),
-    ("u002", "feiticeiraescarlate@marvel.com", "MeusFilho$Minh4Vid4"),
-    ("u003", "flash@dc.com", "Fla$hR3vers0");
+    ("u001", "Professor X", "professorx@marvel.com", "Produto$m4nual"),
+    ("u002", "Feiticeira Escarlate", "feiticeiraescarlate@marvel.com", "MeusFilho$Minh4Vid4"),
+    ("u003", "Flash", "flash@dc.com", "Fla$hR3vers0");
 
-INSERT INTO users (id, email, password)
-VALUES ("u004", "batman@dc.com", "3raVeneno$a");
+INSERT INTO users (id, name, email, password)
+VALUES ("u004", "Batman", "batman@dc.com", "3raVeneno$a");
 
 -- Exercício 1 - Aprofundamento SQL - Get All Users
 
@@ -29,21 +31,23 @@ CREATE TABLE products (
     id TEXT PRIMARY KEY UNIQUE NOT NULL,
     name TEXT NOT NULL,
     price REAL NOT NULL,
-    category TEXT NOT NULL
+    category TEXT NOT NULL, 
+    description TEXT NOT NULL,
+    image_url TEXT NOT NULL
 );
 
 -- Exercício 1 - Aprofundamento SQL - Create Product
 
-INSERT INTO products (id, name, price, category)
+INSERT INTO products (id, name, price, category, description, image_url)
 VALUES 
-    ("p001", "Bala", 0.50, "Doces"),
-    ("p002", "Maça", 10.50, "Frutas"),
-    ("p003", "Bisteca Bovina", 30.50, "Carne Bovina"),
-    ("p004", "Chocolate", 4.50, "Doces"),
-    ("p005", "Maminha", 45.50, "Carne Bovina");
+    ("p001", "Bala", 0.50, "Doces", "Bala de Morango", "image_url"),
+    ("p002", "Maça", 10.50, "Frutas", "Maçar Argentina", "image_url"),
+    ("p003", "Bisteca Bovina", 30.50, "Carne Bovina", "Carne de primeira", "image_url"),
+    ("p004", "Chocolate", 4.50, "Doces", "Chocolate ao leite", "image_url"),
+    ("p005", "Maminha", 45.50, "Carne Bovina", "Carne magra", "image_url");
 
-INSERT INTO products (id, name, price, category)
-VALUES ("p006", "Pera", 9.90, "Frutas");
+INSERT INTO products (id, name, price, category, description, image_url)
+VALUES ("p006", "Pera", 9.90, "Frutas", "Fruta Nacional", "image_url");
 
 -- Exercício 1 - Aprofundamento SQL - Get All Products
 
@@ -113,6 +117,7 @@ CREATE TABLE purchases (
     paid INTEGER NOT NULL,
     delivered_at TEXT,
     buyer_id TEXT NOT NULL,
+    created_at DEFAULT (DATETIME('now','localtime')) NOT NULL,
     FOREIGN KEY (buyer_id) REFERENCES users (id)
 );
 

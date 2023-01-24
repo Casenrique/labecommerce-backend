@@ -3,8 +3,7 @@ import cors from 'cors'
 import { users, products, purchases } from "./database"
 import { CATEGORIES, TProduct, TPurchase, TUser } from "./types";
 import { createUser, getAllUsers, createProduct, getAllProducts, getProductById, createPurchase, getAllPurchasesFromUserId } from "./database"
-import { resourceLimits } from 'worker_threads';
-
+import { db } from './database/knex';
 
 // console.table(users)
 // console.log(users)
@@ -35,64 +34,116 @@ app.get('/ping', (req: Request, res: Response) => {
     res.send('Pong!')
 })
 
-//Exercício 1
+//Exercício 1 - Introdução Knex
 
-app.get('/users', (req: Request, res: Response) => {
+app.get('/users', async (req: Request, res: Response) => {
     try {
-        res.status(200).send(users)
+        const result = await db.raw(`
+            SELECT * FROM users;
+        `)
+        res.status(200).send(result)
         // res.status(200).send(getAllUsers())
     } catch (error: any) {
-        res.status(404)
-        res.send(error.message)
+        console.log(error)
+
+        if (res.statusCode === 200) {
+            res.status(500)
+        }
+
+        if (error instanceof Error) {
+            res.send(error.message)
+        } else {
+            res.send("Erro inesperado")
+        }
     }
 })
 
-app.get('/products', (req: Request, res: Response) => {
+app.get('/products', async (req: Request, res: Response) => {
     try {
-        res.status(200).send(products)
+        const result = await db.raw(`
+            SELECT * FROM products;
+        `)
+        res.status(200).send(result)
         // res.status(200).send(getAllProducts())
     } catch (error: any) {
-        res.status(404)
-        res.send(error.message)
+        console.log(error)
+
+        if (res.statusCode === 200) {
+            res.status(500)
+        }
+
+        if (error instanceof Error) {
+            res.send(error.message)
+        } else {
+            res.send("Erro inesperado")
+        }
     }
 })
 
-app.get('/products/search', (req: Request, res: Response) => {
+app.get('/products/search', async (req: Request, res: Response) => {
     try {
-        const q = req.query.q as string
-        const result: TProduct[] = products.filter((product) => {
-            return product.name.toLowerCase().includes(q.toLowerCase())
-        })
-
-        if(q.length <= 2){
-            res.status(400)
-            throw new Error("Nome de produto inválido. Nome deve contar no mínimo 2 caracteres")
-        }
+        const q = req.query.q
+        const result: TProduct[] = await db.raw(`
+            SELECT * FROM products
+            WHERE name LIKE "%${q}%";
+        `)
+        // const result: TProduct[] = products.filter((product) => {
+        //     return product.name.toLowerCase().includes(q.toLowerCase())
+        // })
 
         if(result.length < 1){
             res.status(400)
             throw new Error("Produto não encontrado")
         }
+        
+        if(typeof q !=="string"){
+            res.status(400)
+            throw new Error("id deve ser um texto")
+            }
+
+        if(q.length <= 2){
+            res.status(400)
+            throw new Error("Nome de produto inválido. Nome deve contar no mínimo 2 caracteres")
+        }
+        
+        
 
         res.status(200).send(result)
 
     } catch (error: any) {
         console.log(error)
 
-        if(res.statusCode === 200){
+        if (res.statusCode === 200) {
             res.status(500)
         }
-        res.send(error.message)
+
+        if (error instanceof Error) {
+            res.send(error.message)
+        } else {
+            res.send("Erro inesperado")
+        }
     }
 })
 
-app.post('/users', (req: Request, res: Response) => {
+//Exercício 2 - Introdução Knex
+
+app.post('/users', async (req: Request, res: Response) => {
     try {
-        const { id, email, password } = req.body
+        const { id, name, email, password } = req.body
+
+        if(!id || !name || !email || !password) {
+            res.status(400)
+            throw new Error("Dados inválidos")            
+        }
 
         if(typeof id !== "string") {
             res.status(400)
             throw new Error("'id' deve ser do tipo string.")
+        }
+
+        if(typeof name !== "string") {
+            res.status(400)
+            throw new Error("'id' deve ser do tipo name.")
         }
 
         if(typeof email !== "string") {
@@ -104,6 +155,11 @@ app.post('/users', (req: Request, res: Response) => {
             res.status(400)
             throw new Error("'password' deve ser do tipo string.")
         }
+
+         await db.raw(`
+         INSERT INTO users (id, name, email, password)
+         VALUES ("${id}", "${name}", "${email}", "${password}")
+         `)
 
         const userId = users.find((user) => user.id === id)
 
@@ -131,22 +187,33 @@ app.post('/users', (req: Request, res: Response) => {
     } catch (error: any) {
         console.log(error)
 
-        if(res.statusCode === 200){
+        if (res.statusCode === 200) {
             res.status(500)
         }
-        res.send(error.message)
-    }
-    
+
+        if (error instanceof Error) {
+            res.send(error.message)
+        } else {
+            res.send("Erro inesperado")
+        }
+}
 })
 
-app.post('/products', (req: Request, res: Response) => {
+app.post('/products', async (req: Request, res: Response) => {
     try {
-        const { id, name, price, category } = req.body
+        const { id, name, price, category, description, image_url } = req.body
 
-        if(!id){
+        if(!id || !name || !price || !category || !description || !image_url){
             res.status(404)
-            throw new Error("'id' deve ser ser informado.")
+            throw new Error("Dados inválidos.")
         }
+
+        await db.raw(`
+         INSERT INTO products (id, name, price, category, description, image_url)
+         VALUES ("${id}", "${name}", "${price}", "${category}", "${description}", "${image_url}" )
+
+        `)
+
         if(typeof id !== "string") {
             res.status(400)
             throw new Error("'id' deve ser do tipo string.")
@@ -193,7 +260,9 @@ app.post('/products', (req: Request, res: Response) => {
             id,
             name,
             price,
-            category
+            category,
+            description, 
+            image_url
         }
         products.push(newProduct)
     
@@ -201,10 +270,15 @@ app.post('/products', (req: Request, res: Response) => {
     } catch (error: any) {
         console.log(error)
 
-        if(res.statusCode === 200){
+        if (res.statusCode === 200) {
             res.status(500)
         }
-        res.send(error.message)
+
+        if (error instanceof Error) {
+            res.send(error.message)
+        } else {
+            res.send("Erro inesperado")
+        }
     }
 })
 
