@@ -114,7 +114,7 @@ FROM products;
 CREATE TABLE purchases (
     id TEXT PRIMARY KEY UNIQUE NOT NULL,
     total_price REAL NOT NULL,
-    paid INTEGER NOT NULL,
+    paid INTEGER DEFAULT (0) NOT NULL,
     delivered_at TEXT,
     buyer_id TEXT NOT NULL,
     created_at DEFAULT (DATETIME('now','localtime')) NOT NULL,

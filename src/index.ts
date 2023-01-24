@@ -38,9 +38,12 @@ app.get('/ping', (req: Request, res: Response) => {
 
 app.get('/users', async (req: Request, res: Response) => {
     try {
-        const result = await db.raw(`
-            SELECT * FROM users;
-        `)
+        // const result = await db.raw(`
+        //     SELECT * FROM users;
+        // `)
+
+        const result = await db("users")
+
         res.status(200).send(result)
         // res.status(200).send(getAllUsers())
     } catch (error: any) {
@@ -60,9 +63,12 @@ app.get('/users', async (req: Request, res: Response) => {
 
 app.get('/products', async (req: Request, res: Response) => {
     try {
-        const result = await db.raw(`
-            SELECT * FROM products;
-        `)
+        // const result = await db.raw(`
+        //     SELECT * FROM products;
+        // `)
+
+        const result = await db("products")
+
         res.status(200).send(result)
         // res.status(200).send(getAllProducts())
     } catch (error: any) {
@@ -83,10 +89,13 @@ app.get('/products', async (req: Request, res: Response) => {
 app.get('/products/search', async (req: Request, res: Response) => {
     try {
         const q = req.query.q
-        const result: TProduct[] = await db.raw(`
-            SELECT * FROM products
-            WHERE name LIKE "%${q}%";
-        `)
+        // const result: TProduct[] = await db.raw(`
+        //     SELECT * FROM products
+        //     WHERE name LIKE "%${q}%";
+        // `)
+
+        const result = await db("products").where("name", "LIKE", `%${q}%`)
+
         // const result: TProduct[] = products.filter((product) => {
         //     return product.name.toLowerCase().includes(q.toLowerCase())
         // })
@@ -104,9 +113,7 @@ app.get('/products/search', async (req: Request, res: Response) => {
         if(q.length <= 2){
             res.status(400)
             throw new Error("Nome de produto inválido. Nome deve contar no mínimo 2 caracteres")
-        }
-        
-        
+        }        
 
         res.status(200).send(result)
 
@@ -156,32 +163,33 @@ app.post('/users', async (req: Request, res: Response) => {
             throw new Error("'password' deve ser do tipo string.")
         }
 
-         await db.raw(`
-         INSERT INTO users (id, name, email, password)
-         VALUES ("${id}", "${name}", "${email}", "${password}")
-         `)
-
+        //  await db.raw(`
+        //  INSERT INTO users (id, name, email, password)
+        //  VALUES ("${id}", "${name}", "${email}", "${password}")
+        //  `)
+        
         const userId = users.find((user) => user.id === id)
-
+        
         if(userId) {
             res.status(409)
             throw new Error("'id' já cadastrado.")
         }
-
+        
         const userEmail = users.find((user) => user.email === email)
-
+        
         if(userEmail) {
             res.status(409)
             throw new Error("'email' já cadastrado.")
         }
-
-        const newUser = {
-            id,
-            email, 
-            password
-        }
-        users.push(newUser)
-    
+        
+        // const newUser = {
+        //     id,
+        //     email, 
+        //     password
+        // }
+        // users.push(newUser)
+        
+        await db.insert({ id, name, email, password }).into("users")
         res.status(201).send("Cadastro realizado com sucesso")
 
     } catch (error: any) {
@@ -208,11 +216,10 @@ app.post('/products', async (req: Request, res: Response) => {
             throw new Error("Dados inválidos.")
         }
 
-        await db.raw(`
-         INSERT INTO products (id, name, price, category, description, image_url)
-         VALUES ("${id}", "${name}", "${price}", "${category}", "${description}", "${image_url}" )
-
-        `)
+        // await db.raw(`
+        //  INSERT INTO products (id, name, price, category, description, image_url)
+        //  VALUES ("${id}", "${name}", "${price}", "${category}", "${description}", "${image_url}" )
+        // `)
 
         if(typeof id !== "string") {
             res.status(400)
@@ -264,7 +271,8 @@ app.post('/products', async (req: Request, res: Response) => {
             description, 
             image_url
         }
-        products.push(newProduct)
+
+        await db.insert(newProduct).into("products")
     
         res.status(201).send("Produto cadastrado com sucesso")
     } catch (error: any) {
@@ -282,34 +290,26 @@ app.post('/products', async (req: Request, res: Response) => {
     }
 })
 
-app.post('/purchase', (req: Request, res: Response) => {
+app.post('/purchases', async (req: Request, res: Response) => {
 
     try {
-        const { userId, productId, quantity, totalPrice } = req.body
+        const { purchaseId, buyerId, totalPrice } = req.body
 
-        if(!userId){
+        if(!purchaseId){
             res.status(404)
             throw new Error("'userId' deve ser ser informado.")
         }
-        if(typeof userId !== "string") {
+        if(typeof purchaseId !== "string") {
             res.status(400)
-            throw new Error("'userId' deve ser do tipo string.")
+            throw new Error("'purchaseId' deve ser do tipo string.")
         }
-        if(!productId){
+        if(!buyerId){
             res.status(404)
-            throw new Error("'productId' deve ser ser informado.")
+            throw new Error("'buyerId' deve ser ser informado.")
         }
-        if(typeof productId !== "string") {
+        if(typeof buyerId !== "string") {
             res.status(400)
-            throw new Error("'productId' deve ser do tipo string.")
-        }
-        if(!quantity){
-            res.status(404)
-            throw new Error("'quantity' deve ser ser informado.")
-        }
-        if(typeof quantity !== "number") {
-            res.status(400)
-            throw new Error("'quantity' deve ser do tipo number.")
+            throw new Error("'buyerId' deve ser do tipo string.")
         }
         if(!totalPrice){
             res.status(404)
@@ -319,6 +319,7 @@ app.post('/purchase', (req: Request, res: Response) => {
             res.status(400)
             throw new Error("'totalPrice' deve ser do tipo number.")
         }
+        
 
         // const purchaseUserId = users.find((user) => user.id === userId)
         // if(!users.includes(purchaseUserId)){
@@ -326,12 +327,12 @@ app.post('/purchase', (req: Request, res: Response) => {
         // }
 
         const newPurchase = {
-            userId,
-            productId,
-            quantity,
-            totalPrice
+            id: purchaseId,
+            total_price: totalPrice,
+            buyer_id: buyerId
         }
-        purchases.push(newPurchase)
+
+        await db.insert(newPurchase).into("purchases")
     
         res.status(201).send("Compra realizada com sucesso")
 
@@ -375,7 +376,7 @@ app.get('/products/:id', (req: Request, res: Response) => {
 
 app.get('/users/:id/purchases', (req: Request, res: Response) => {
     try {
-        const { id } = req.params
+        const  id  = req.params.id
     
         const result = purchases.filter((purchase) => {
             return purchase.userId === id
@@ -497,3 +498,9 @@ app.put('/products/:id', (req: Request, res: Response) => {
 
     res.status(200).send("Atualização realizada com sucesso")
 })
+
+// Exercício 2 - Aprofundamento Knex
+
+app.get("/purchase/:id"),async (req: Request, res: Response ) => {
+    
+}
