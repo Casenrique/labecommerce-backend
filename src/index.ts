@@ -267,6 +267,7 @@ app.post('/products', async (req: Request, res: Response) => {
         products.push(newProduct)
     
         res.status(201).send("Produto cadastrado com sucesso")
+
     } catch (error: any) {
         console.log(error)
 
@@ -282,35 +283,35 @@ app.post('/products', async (req: Request, res: Response) => {
     }
 })
 
-app.post('/purchase', (req: Request, res: Response) => {
+app.post('/purchases', async (req: Request, res: Response) => {
 
     try {
-        const { userId, productId, quantity, totalPrice } = req.body
+        const id = req.body.id
+        const buyerId = req.body.buyerId
+        const totalPrice = req.body.totalPrice
 
-        if(!userId){
-            res.status(404)
-            throw new Error("'userId' deve ser ser informado.")
-        }
-        if(typeof userId !== "string") {
+        if(!id || !buyerId || !totalPrice ){
             res.status(400)
-            throw new Error("'userId' deve ser do tipo string.")
+            throw new Error("Dados inválidos")            
         }
-        if(!productId){
-            res.status(404)
-            throw new Error("'productId' deve ser ser informado.")
-        }
-        if(typeof productId !== "string") {
+        
+        // if(!id){
+        //     res.status(404)
+        //     throw new Error("'id' deve ser ser informado.")
+        // }
+        if(typeof id !== "string") {
             res.status(400)
-            throw new Error("'productId' deve ser do tipo string.")
+            throw new Error("'id' deve ser do tipo string.")
         }
-        if(!quantity){
-            res.status(404)
-            throw new Error("'quantity' deve ser ser informado.")
-        }
-        if(typeof quantity !== "number") {
+        // if(!buyerId){
+        //     res.status(404)
+        //     throw new Error("'buyerId' deve ser ser informado.")
+        // }
+        if(typeof buyerId !== "string") {
             res.status(400)
-            throw new Error("'quantity' deve ser do tipo number.")
+            throw new Error("'buyerId' deve ser do tipo string.")
         }
+
         if(!totalPrice){
             res.status(404)
             throw new Error("'totalPrice' deve ser ser informado.")
@@ -319,19 +320,40 @@ app.post('/purchase', (req: Request, res: Response) => {
             res.status(400)
             throw new Error("'totalPrice' deve ser do tipo number.")
         }
+        // if(!quantity){
+        //     res.status(404)
+        //     throw new Error("'quantity' deve ser ser informado.")
+        // }
+        // if(typeof quantity !== "number") {
+        //     res.status(400)
+        //     throw new Error("'quantity' deve ser do tipo number.")
+        // }
+        
 
         // const purchaseUserId = users.find((user) => user.id === userId)
         // if(!users.includes(purchaseUserId)){
             
         // }
 
-        const newPurchase = {
-            userId,
-            productId,
-            quantity,
-            totalPrice
+        const purchaseId = purchases.find((purchase) => purchase.id === id)
+
+        if(purchaseId) {
+            res.status(409)
+            throw new Error("'id' já cadastrado.")
         }
+
+        const newPurchase = {
+            id: id,
+            buyer_id: buyerId,
+            total_price: totalPrice
+        }
+
         purchases.push(newPurchase)
+
+        await db.raw(`
+        INSERT INTO purchases (id, buyer_id, total_price)
+        VALUES ("${id}", "${buyerId}", "${totalPrice}" )
+        `)
     
         res.status(201).send("Compra realizada com sucesso")
 
@@ -378,7 +400,7 @@ app.get('/users/:id/purchases', (req: Request, res: Response) => {
         const { id } = req.params
     
         const result = purchases.filter((purchase) => {
-            return purchase.userId === id
+            return purchase.buyer_id === id
         })
 
         if(!result) {
@@ -404,7 +426,7 @@ app.get('/users/:id/purchases', (req: Request, res: Response) => {
 
 app.delete('/users/:id', (req: Request, res: Response) => {
     try {
-        const { id } = req.params    
+        const id  = req.params.id    
         const userIndex = users.findIndex((user) => {
             return user.id === id
         })
