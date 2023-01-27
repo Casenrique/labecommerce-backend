@@ -40,14 +40,14 @@ CREATE TABLE products (
 
 INSERT INTO products (id, name, price, category, description, image_url)
 VALUES 
-    ("p001", "Bala", 0.50, "Doces", "Bala de Morango", "image_url"),
-    ("p002", "Maça", 10.50, "Frutas", "Maçar Argentina", "image_url"),
-    ("p003", "Bisteca Bovina", 30.50, "Carne Bovina", "Carne de primeira", "image_url"),
-    ("p004", "Chocolate", 4.50, "Doces", "Chocolate ao leite", "image_url"),
-    ("p005", "Maminha", 45.50, "Carne Bovina", "Carne magra", "image_url");
+    ("p001", "Bala", 0.50, "Doces", "Bala de Morango", "https://picsum.photos/200"),
+    ("p002", "Maça", 10.50, "Frutas", "Maçar Argentina", "https://picsum.photos/200"),
+    ("p003", "Bisteca Bovina", 30.50, "Carne Bovina", "Carne de primeira", "https://picsum.photos/200"),
+    ("p004", "Chocolate", 4.50, "Doces", "Chocolate ao leite", "https://picsum.photos/200"),
+    ("p005", "Maminha", 45.50, "Carne Bovina", "Carne magra", "https://picsum.photos/200");
 
 INSERT INTO products (id, name, price, category, description, image_url)
-VALUES ("p006", "Pera", 9.90, "Frutas", "Fruta Nacional", "image_url");
+VALUES ("p006", "Pera", 9.90, "Frutas", "Fruta Nacional", "https://picsum.photos/200");
 
 -- Exercício 1 - Aprofundamento SQL - Get All Products
 
@@ -103,8 +103,8 @@ WHERE id = "u001";
 -- Exercício 2 - Aprofundamento SQL - Edit Product by id
 
 UPDATE products
-SET price = 3.90
-WHERE id = "p004";
+SET image_url = "https://picsum.photos/200"
+WHERE id = "p008";
 
 SELECT MIN(price) as minPrice
 FROM products;
@@ -114,10 +114,10 @@ FROM products;
 CREATE TABLE purchases (
     id TEXT PRIMARY KEY UNIQUE NOT NULL,
     total_price REAL NOT NULL,
-    paid INTEGER NOT NULL,
+    paid INTEGER DEFAULT (0) NOT NULL,
     delivered_at TEXT,
     buyer_id TEXT NOT NULL,
-    created_at DEFAULT (DATETIME('now','localtime')) NOT NULL,
+    created_at TEXT DEFAULT (DATETIME('now','localtime')) NOT NULL,
     FOREIGN KEY (buyer_id) REFERENCES users (id)
 );
 
