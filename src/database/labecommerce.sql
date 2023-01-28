@@ -70,6 +70,8 @@ PRAGMA table_info("users");
 
 PRAGMA table_info("products");
 
+PRAGMA table_info("purchases");
+
 -- Exercício 2 - Aprofundamento SQL - Delete User by id
 
 DELETE FROM users
@@ -82,6 +84,10 @@ WHERE id = "p001";
 
 DROP TABLE users;
 DROP TABLE products;
+
+DROP TABLE purchases;
+
+DROP TABLE purchases_products;
 
 -- Exercício 1 - Aprofundamento SQL - Search Product by name
 
@@ -103,8 +109,8 @@ WHERE id = "u001";
 -- Exercício 2 - Aprofundamento SQL - Edit Product by id
 
 UPDATE products
-SET image_url = "https://picsum.photos/200"
-WHERE id = "p008";
+SET description = "Maça Argentina"
+WHERE id = "p002";
 
 SELECT MIN(price) as minPrice
 FROM products;
@@ -114,7 +120,7 @@ FROM products;
 CREATE TABLE purchases (
     id TEXT PRIMARY KEY UNIQUE NOT NULL,
     total_price REAL NOT NULL,
-    paid INTEGER DEFAULT (0) NOT NULL,
+    paid INTEGER DEFAULT(0) NOT NULL,
     delivered_at TEXT,
     buyer_id TEXT NOT NULL,
     created_at TEXT DEFAULT (DATETIME('now','localtime')) NOT NULL,
