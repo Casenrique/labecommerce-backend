@@ -27,3 +27,9 @@ export type TPurchase = {
     buyer_id: string,
     created_at: string
 }
+
+export type TPurchaseProduct = {
+    purchase_id: string,
+    product_id: string,
+    quantity: number
+}

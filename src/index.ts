@@ -1,6 +1,6 @@
 import express, { Request, Response} from 'express'
 import cors from 'cors'
-import { CATEGORIES, TProduct, TPurchase, TUser } from "./types";
+import { TProduct, TPurchase, TPurchaseProduct, TUser } from "./types";
 import { db } from './database/knex';
 
 
@@ -18,7 +18,7 @@ app.get('/ping', (req: Request, res: Response) => {
     res.send('Pong!')
 })
 
-//Exercício 1 - Introdução Knex
+//Endpoint Get all users com funcionalidade de pesquisa por nome e por id
 
 app.get('/users', async (req: Request, res: Response) => {
     try {
@@ -27,9 +27,25 @@ app.get('/users', async (req: Request, res: Response) => {
 
         if(searchTerm === undefined) {
             const result = await db("users")
+            .select(
+                "id",
+                "name",
+                "email",
+                "password",
+                "created_at AS createdAt",
+            )
             res.status(200).send(result)
         } else {
-            const result = await db("users").where("name", "LIKE", `%${searchTerm}%`)
+            const result = await db("users")
+            .select(
+                "id",
+                "name",
+                "email",
+                "password",
+                "created_at AS createdAt",
+            )
+            .where("name", "LIKE", `%${searchTerm}%`)
+            .orWhere("id", "LIKE", `%${searchTerm}%`)
             res.status(200).send(result)
         }
 
@@ -48,6 +64,8 @@ app.get('/users', async (req: Request, res: Response) => {
     }
 })
 
+//Endpoint Get all products com funcionalidade de pesquisa por nome e por id
+
 app.get('/products', async (req: Request, res: Response) => {
     try {
         
@@ -55,9 +73,27 @@ app.get('/products', async (req: Request, res: Response) => {
 
         if(searchTerm === undefined) {
             const result = await db("products")
+            .select(
+                "id",
+                "name",
+                "price",
+                "category",
+                "description",
+                "image_url AS imageUrl"
+            )
             res.status(200).send(result)
         } else {
-            const result = await db("products").where("name", "LIKE", `%${searchTerm}%`)
+            const result = await db("products")
+            .select(
+                "id",
+                "name",
+                "price",
+                "category",
+                "description",
+                "image_url AS imageUrl"
+            )
+            .where("name", "LIKE", `%${searchTerm}%`)
+            .orWhere("description", "LIKE", `%${searchTerm}%`)
             res.status(200).send(result)
         }
 
@@ -105,53 +141,7 @@ app.get('/purchases', async (req: Request, res: Response) => {
     }
 })
 
-app.get('/products/search', async (req: Request, res: Response) => {
-    try {
-        const q = req.query.q
-        // const result: TProduct[] = await db.raw(`
-        //     SELECT * FROM products
-        //     WHERE name LIKE "%${q}%";
-        // `)
-
-        const result = await db("products").where("name", "LIKE", `%${q}%`)
-
-        // const result: TProduct[] = products.filter((product) => {
-        //     return product.name.toLowerCase().includes(q.toLowerCase())
-        // })
-
-        if(result.length < 1){
-            res.status(400)
-            throw new Error("Produto não encontrado")
-        }
-        
-        if(typeof q !=="string"){
-            res.status(400)
-            throw new Error("id deve ser um texto")
-            }
-
-        if(q.length <= 2){
-            res.status(400)
-            throw new Error("Nome de produto inválido. Nome deve contar no mínimo 2 caracteres")
-        }        
-
-        res.status(200).send(result)
-
-    } catch (error: any) {
-        console.log(error)
-
-        if (res.statusCode === 200) {
-            res.status(500)
-        }
-
-        if (error instanceof Error) {
-            res.send(error.message)
-        } else {
-            res.send("Erro inesperado")
-        }
-    }
-})
-
-//Exercício 2 - Introdução Knex
+//Endpoint Create user
 
 app.post('/users', async (req: Request, res: Response) => {
     try {
@@ -181,12 +171,7 @@ app.post('/users', async (req: Request, res: Response) => {
             res.status(400)
             throw new Error("'password' deve ser do tipo string.")
         }
-
-        //  await db.raw(`
-        //  INSERT INTO users (id, name, email, password)
-        //  VALUES ("${id}", "${name}", "${email}", "${password}")
-        //  `)
-        
+           
         const [userIdAlreadyExists]: TUser[] | undefined = await db("users").where({ id })
         
         if(userIdAlreadyExists) {
@@ -200,16 +185,9 @@ app.post('/users', async (req: Request, res: Response) => {
             res.status(409)
             throw new Error("'email' já cadastrado.")
         }
-        
-        // const newUser = {
-        //     id,
-        //     email, 
-        //     password
-        // }
-        // users.push(newUser)
-        
+                       
         await db.insert({ id, name, email, password }).into("users")
-        res.status(201).send("Cadastro realizado com sucesso")
+        res.status(201).send({message: "Cadastro realizado com sucesso"})
 
     } catch (error: any) {
         console.log(error)
@@ -228,46 +206,46 @@ app.post('/users', async (req: Request, res: Response) => {
 
 app.post('/products', async (req: Request, res: Response) => {
     try {
-        const { id, name, price, category, description, image_url } = req.body
+        const id = req.body.id
+        const name = req.body.name
+        const price = req.body.price
+        const category = req.body.category
+        const description = req.body.description
+        const imageUrl = req.body.imageUrl
 
-        if(!id || !name || !price || !category || !description || !image_url){
+        if(!id || !name || !price || !category || !description || !imageUrl){
             res.status(404)
             throw new Error("Dados inválidos.")
         }
-
-        // await db.raw(`
-        //  INSERT INTO products (id, name, price, category, description, image_url)
-        //  VALUES ("${id}", "${name}", "${price}", "${category}", "${description}", "${image_url}" )
-        // `)
-
+    
         if(typeof id !== "string") {
             res.status(400)
-            throw new Error("'id' deve ser do tipo string.")
+            throw new Error("'id' deve ser do tipo string." )
         }
 
         if(!name){
             res.status(404)
-            throw new Error("'name' deve ser ser informado.")
+            throw new Error( "'name' deve ser ser informado.")
         }        
         
         if(typeof name !== "string") {
             res.status(400)
-            throw new Error("'name' deve ser do tipo string.")
+            throw new Error( "'name' deve ser do tipo string.")
         }       
 
         if(!price){
             res.status(404)
-            throw new Error("'price' deve ser ser informado.")
+            throw new Error( "'price' deve ser ser informado.")
         }
 
         if(typeof price !== "number") {
             res.status(400)
-            throw new Error("'price' deve ser do tipo string.")
+            throw new Error( "'price' deve ser do tipo string.")
         }
 
         if(!category){
             res.status(404)
-            throw new Error("'category' deve ser ser informado.")
+            throw new Error( "'category' deve ser ser informado.")
         }
         
         if(typeof category !== "string") {
@@ -279,7 +257,7 @@ app.post('/products', async (req: Request, res: Response) => {
 
         if(productIdAlreadyExists) {
             res.status(409)
-            throw new Error("'id' do produto já cadastrado.")
+            throw new Error( "'id' do produto já cadastrado.")
         }
 
         const newProduct: any = {
@@ -288,12 +266,12 @@ app.post('/products', async (req: Request, res: Response) => {
             price,
             category,
             description, 
-            image_url
+            image_url: imageUrl
         }
 
         await db.insert(newProduct).into("products")
     
-        res.status(201).send("Produto cadastrado com sucesso")
+        res.status(201).send({ message: "Produto cadastrado com sucesso" })
     } catch (error: any) {
         console.log(error)
 
@@ -312,55 +290,113 @@ app.post('/products', async (req: Request, res: Response) => {
 app.post('/purchases', async (req: Request, res: Response) => {
 
     try {
-        const { purchaseId, buyerId, totalPrice } = req.body
 
-        if(!purchaseId){
+        const purchaseId = req.body.purchaseId
+        const buyerId = req.body.buyerId
+        const productId = req.body.productId
+        const quantity = req.body.quantity
+
+        const[ products ] = await db("products").where({ id: productId})
+
+        if(!purchaseId || !buyerId || !productId || !quantity) {
             res.status(404)
-            throw new Error("'userId' deve ser ser informado.")
+            throw new Error("Dados inválidos.")
         }
+        
+        const [ purchaseIdAlreadyExists ]: TPurchase[] | undefined = await db("purchases").where({ id: purchaseId })
+
+        if(purchaseIdAlreadyExists) {
+            res.status(409)
+            throw new Error("'id' da compra já cadastrado.")
+        }
+   
         if(typeof purchaseId !== "string") {
             res.status(400)
             throw new Error("'purchaseId' deve ser do tipo string.")
         }
-        if(!buyerId){
-            res.status(404)
-            throw new Error("'buyerId' deve ser ser informado.")
+
+        if(purchaseId[0] !== "p" && purchaseId[1] !== "u"){
+            res.status(400)
+            throw new Error("O id deve iniciar com 'pu'.")
         }
+        
+        const [ userIExists ]: TUser[] | undefined = await db("users").where({ id: buyerId })
+
+        if(!userIExists) {
+            res.status(404)
+            throw new Error("'id' do user não encontrado")            
+        }
+
         if(typeof buyerId !== "string") {
             res.status(400)
             throw new Error("'buyerId' deve ser do tipo string.")
         }
-        if(!totalPrice){
-            res.status(404)
-            throw new Error("'totalPrice' deve ser ser informado.")
-        }
-        if(typeof totalPrice !== "number") {
+        
+        if(typeof quantity !== "number") {
             res.status(400)
-            throw new Error("'totalPrice' deve ser do tipo number.")
+            throw new Error("'quantity' deve ser do tipo number.")
         }
         
-
-        // const purchaseUserId = users.find((user) => user.id === userId)
-        // if(!users.includes(purchaseUserId)){
-            
-        // }
-
-        const [ purchaseIdAlreadyExists ]: TPurchase[] | undefined = await db("purchases").where({ buyerId })
-
-        if(purchaseIdAlreadyExists) {
-            res.status(409)
-            throw new Error("'id' do produto já cadastrado.")
-        }
-
+        
+                
         const newPurchase = {
             id: purchaseId,
-            total_price: totalPrice,
-            buyer_id: buyerId
+            buyer_id: buyerId,
+            total_price: products.price * quantity
         }
 
-        await db.insert(newPurchase).into("purchases")
-    
-        res.status(201).send("Compra realizada com sucesso")
+        await db("purchases").insert(newPurchase)
+
+        const newPurchaseProduct: TPurchaseProduct = {
+            purchase_id: purchaseId,
+            product_id: productId,
+            quantity            
+        }
+
+        await db("purchases_products").insert(newPurchaseProduct)
+
+        const purchases: TPurchase[] = await db("purchases")
+
+        const result = []
+
+        for (let purchase of purchases) {
+            const cart = []
+            const purchases_products: TPurchaseProduct[] = await db("purchases_products")
+            .select(
+                "id",
+                "buyer_id AS buyer",
+                "total_price AS totalPrice"
+                // "purchases_products.quantity"
+            )
+            .where({ purchase_id: purchase.id })
+            
+            for (let purchase_product of purchases_products) {
+                const [ product ]: TProduct[] = await db("products")
+                .select(
+                    "id",
+                    "name",
+                    "price",
+                    "category",
+                    "description",
+                    "image_url AS imageUrl"
+                    // "purchases_products.quantity"
+                )
+                .where( {id: purchase_product.product_id } )
+                cart.push(product)
+            }
+
+            const newPurchaseWithProducts = {
+                ...purchase,
+                cart
+            }
+            result.push(newPurchaseWithProducts)    
+        
+        }
+            
+        res.status(201).send({ 
+            message: "Compra realizada com sucesso" ,
+            result
+        })
 
     } catch (error: any) {
         console.log(error)
@@ -683,9 +719,9 @@ app.put('/products/:id', async (req: Request, res: Response) => {
 	
         await db("products").update(productToEdit).where({ id: idToEdit })
 
-        res.status(201).send({
-            message: "Product editada com sucesso.",
-            user: idToEdit
+        res.status(200).send({
+            message: "Product editado com sucesso.",
+            product: idToEdit
         })
 
     } catch (error) {
