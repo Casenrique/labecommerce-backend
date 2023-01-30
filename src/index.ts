@@ -122,7 +122,9 @@ app.get('/purchases', async (req: Request, res: Response) => {
             const result = await db("purchases")
             res.status(200).send(result)
         } else {
-            const result = await db("purchases").where("name", "LIKE", `%${searchTerm}%`)
+            const result = await db("purchases")
+            .where("id", "LIKE", `%${searchTerm}%`)
+            .orWhere("buyer_id", "LIKE", `%${searchTerm}%`)
             res.status(200).send(result)
         }
 
@@ -152,11 +154,22 @@ app.post('/users', async (req: Request, res: Response) => {
             throw new Error("Dados inválidos")            
         }
 
-        if(typeof id !== "string") {
-            res.status(400)
-            throw new Error("'id' deve ser do tipo string.")
+        if(id !== undefined) {
+            if(id[0] !== "u") {
+                res.status(400)
+                throw new Error("'id' deve começar com a letra 'u'.")            
+            }
+            if(typeof id !== "string") {
+                res.status(400)
+                throw new Error("'id' deve ser string")
+            }
+            if(id.length < 4) {
+                res.status(400)
+                throw new Error("'id' deve possuir pelo menos 4 caracteres.")
+            }
         }
 
+       
         if(typeof name !== "string") {
             res.status(400)
             throw new Error("'id' deve ser do tipo name.")
@@ -684,9 +697,9 @@ app.delete('/products/:id', async (req: Request, res: Response) => {
         
         const [ productIdAlreadyExists ]: TProduct[] | undefined = await db("products").where({ id: idToDelete })
 
-        if(idToDelete[0] !== "u") {
+        if(idToDelete[0] !== "p") {
             res.status(400)
-            throw new Error("'id' deve começar com a letra 'u'.")            
+            throw new Error("'id' deve começar com a letra 'p'.")            
         }
         
         if(!productIdAlreadyExists) {
