@@ -124,7 +124,7 @@ CREATE TABLE purchases (
     delivered_at TEXT,
     buyer_id TEXT NOT NULL,
     created_at TEXT DEFAULT (DATETIME('now','localtime')) NOT NULL,
-    FOREIGN KEY (buyer_id) REFERENCES users (id)
+    FOREIGN KEY (buyer_id) REFERENCES users (id) ON UPDATE CASCADE
 );
 
 -- Relações SQL - Exercício 2
@@ -163,7 +163,7 @@ CREATE TABLE purchases_products (
     product_id TEXT NOT NULL,
     quantity INTEGER NOT NULL,
     FOREIGN KEY (purchase_id) REFERENCES purchases (id),
-    FOREIGN KEY (product_id) REFERENCES products (id)
+    FOREIGN KEY (product_id) REFERENCES products (id) ON UPDATE CASCADE
 );
 
 -- Relações SQL II - Exercício 2
