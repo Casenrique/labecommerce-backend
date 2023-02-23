@@ -37,7 +37,7 @@ Requisições para a API devem seguir os padrões:
 ## Tecnologias utilizadas
 
 1. [Node.js](https://nodejs.org/en/)
-2. [Typescript](https://pokeapi.co/)
+2. [Typescript](https://www.typescriptlang.org/)
 3. [Express](https://expressjs.com/pt-br/)
 4. [Cors](https://www.npmjs.com/package/cors)
 5. [Knex](https://knexjs.org/)
